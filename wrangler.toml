@@ -1,0 +1,10 @@
+name = "apsara-ott"
+compatibility_date = "2025-04-01"
+# nodejs_compat enables TCP sockets (needed for postgres) and other Node.js APIs
+compatibility_flags = ["nodejs_compat"]
+
+pages_build_output_dir = ".svelte-kit/cloudflare"
+
+[vars]
+# Non-secret env vars can go here; secrets go in the Cloudflare dashboard
+NODE_ENV = "production"
