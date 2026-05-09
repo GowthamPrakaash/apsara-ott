@@ -22,11 +22,12 @@
 	let fileId = $state('');
 	let fileName = $state('');
 	let error = $state('');
+	let cleared = $state(false);
 
 	const accept = $derived(type === 'poster' ? 'image/*' : type === 'video' ? 'video/*' : '.vtt,.srt');
 
 	$effect(() => {
-		if (existingId && !fileId) {
+		if (existingId && !fileId && !cleared) {
 			fileId = existingId;
 			fileName = 'Existing file';
 		}
@@ -38,6 +39,7 @@
 		if (!file) return;
 		uploading = true;
 		error = '';
+		cleared = false;
 		try {
 			const fd = new FormData();
 			fd.append('file', file);
@@ -58,6 +60,7 @@
 	function clear() {
 		fileId = '';
 		fileName = '';
+		cleared = true;
 	}
 </script>
 

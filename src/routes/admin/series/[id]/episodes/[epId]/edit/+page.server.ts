@@ -2,7 +2,7 @@ import { db } from '$lib/server/db';
 import { episodes, series as seriesTable } from '$lib/server/db/schema';
 import { loadEpisodeSubtitleTracks, parseSubtitleTracks, replaceEpisodeSubtitleTracks } from '$lib/server/subtitle-tracks';
 import { eq } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import { error, redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	return {
 		episode: {
 			...ep,
-			posterUrl: ep.poster ? `${MEDIA_BASE_URL}/${ep.poster.storagePath}` : null,
+			posterUrl: ep.poster ? buildMediaUrl(ep.poster.storagePath) : null,
 			subtitleTracks
 		},
 		series

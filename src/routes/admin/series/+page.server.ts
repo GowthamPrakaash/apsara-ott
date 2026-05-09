@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { series } from '$lib/server/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async () => {
@@ -16,7 +16,7 @@ export const load: PageServerLoad = async () => {
 	return {
 		series: allSeries.map(s => ({
 			...s,
-			posterUrl: s.poster ? `${MEDIA_BASE_URL}/${s.poster.storagePath}` : null,
+			posterUrl: s.poster ? buildMediaUrl(s.poster.storagePath) : null,
 			genreNames: s.genres.map(g => g.genre.name),
 			episodeCount: s.episodes.length
 		}))

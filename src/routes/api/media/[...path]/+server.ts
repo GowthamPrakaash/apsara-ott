@@ -1,8 +1,7 @@
-import { readFile, stat } from 'fs/promises';
-import { join } from 'path';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { UPLOAD_DIR } from '$lib/server/config';
+import { getStorageProvider } from '$lib/server/storage-provider';
+import { env } from '$env/dynamic/private';
 
 // MIME type map for serving media files
 const MIME_TYPES: Record<string, string> = {
@@ -26,18 +25,26 @@ export const GET: RequestHandler = async ({ params, request }) => {
 		throw error(400, 'Invalid path');
 	}
 
-	const fullPath = join(UPLOAD_DIR, filePath);
+	const storageType = env.STORAGE_PROVIDER ?? 'local';
 
-	let fileStats;
-	try {
-		fileStats = await stat(fullPath);
-	} catch {
+	// For S3 storage with a public URL, redirect to the public/presigned URL
+	if (storageType === 's3') {
+		const provider = getStorageProvider();
+		const url = await provider.getUrl(filePath);
+		throw redirect(302, url);
+	}
+
+	// Local storage: serve the file directly
+	const provider = getStorageProvider();
+
+	const fileInfo = await provider.getFileInfo(filePath);
+	if (!fileInfo) {
 		throw error(404, 'File not found');
 	}
 
-	const ext = '.' + fullPath.split('.').pop()?.toLowerCase();
+	const ext = '.' + filePath.split('.').pop()?.toLowerCase();
 	const contentType = MIME_TYPES[ext] ?? 'application/octet-stream';
-	const fileSize = fileStats.size;
+	const fileSize = fileInfo.size;
 
 	// Handle Range requests for video seeking
 	const rangeHeader = request.headers.get('range');
@@ -46,31 +53,29 @@ export const GET: RequestHandler = async ({ params, request }) => {
 		const parts = rangeHeader.replace('bytes=', '').split('-');
 		const start = parseInt(parts[0], 10);
 		const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-		const chunkSize = end - start + 1;
 
-		const buffer = Buffer.alloc(chunkSize);
-		const { open } = await import('fs/promises');
-		const fd = await open(fullPath, 'r');
-		await fd.read(buffer, 0, chunkSize, start);
-		await fd.close();
+		const result = await provider.getFileRange(filePath, start, end);
+		if (!result) throw error(404, 'File not found');
 
-		return new Response(buffer, {
+		return new Response(new Uint8Array(result.data), {
 			status: 206,
 			headers: {
-				'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+				'Content-Range': `bytes ${start}-${end}/${result.totalSize}`,
 				'Accept-Ranges': 'bytes',
-				'Content-Length': String(chunkSize),
+				'Content-Length': String(result.size),
 				'Content-Type': contentType
 			}
 		});
 	}
 
 	// Full file response
-	const data = await readFile(fullPath);
-	return new Response(data, {
+	const result = await provider.getFile(filePath);
+	if (!result) throw error(404, 'File not found');
+
+	return new Response(new Uint8Array(result.data), {
 		headers: {
 			'Content-Type': contentType,
-			'Content-Length': String(fileSize),
+			'Content-Length': String(result.size),
 			'Accept-Ranges': 'bytes',
 			'Cache-Control': 'public, max-age=86400'
 		}

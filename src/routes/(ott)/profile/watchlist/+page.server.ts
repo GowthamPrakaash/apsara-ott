@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { watchlist } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -25,8 +25,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 			return {
 				id: item.id,
 				addedAt: item.addedAt,
-				movie: m ? { id: m.id, name: m.name, posterUrl: m.poster ? `${MEDIA_BASE_URL}/${m.poster.storagePath}` : null } : null,
-				series: s ? { id: s.id, name: s.name, posterUrl: s.poster ? `${MEDIA_BASE_URL}/${s.poster.storagePath}` : null } : null
+				movie: m ? { id: m.id, name: m.name, posterUrl: m.poster ? buildMediaUrl(m.poster.storagePath) : null } : null,
+				series: s ? { id: s.id, name: s.name, posterUrl: s.poster ? buildMediaUrl(s.poster.storagePath) : null } : null
 			};
 		})
 	};

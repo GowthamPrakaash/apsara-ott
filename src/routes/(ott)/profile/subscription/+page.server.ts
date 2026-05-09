@@ -1,7 +1,6 @@
 import { db } from '$lib/server/db';
 import { subscriptions, payments, watchHistory, watchlist, users } from '$lib/server/db/schema';
 import { eq, and, gt, desc, asc } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 

@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { series, genres, seriesGenres } from '$lib/server/db/schema';
 import { eq, asc } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import { error, redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	]);
 	if (!s) throw error(404, 'Series not found');
 	return {
-		series: { ...s, posterUrl: s.poster ? `${MEDIA_BASE_URL}/${s.poster.storagePath}` : null, selectedGenreIds: s.genres.map(g => g.genre.id) },
+		series: { ...s, posterUrl: s.poster ? buildMediaUrl(s.poster.storagePath) : null, selectedGenreIds: s.genres.map(g => g.genre.id) },
 		genres: allGenres
 	};
 };

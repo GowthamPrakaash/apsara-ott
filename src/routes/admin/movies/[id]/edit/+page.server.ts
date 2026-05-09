@@ -2,7 +2,7 @@ import { db } from '$lib/server/db';
 import { movies, genres, movieGenres } from '$lib/server/db/schema';
 import { loadMovieSubtitleTracks, parseSubtitleTracks, replaceMovieSubtitleTracks } from '$lib/server/subtitle-tracks';
 import { eq, asc } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import { error, redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -33,7 +33,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	return {
 		movie: {
 			...movie,
-			posterUrl: movie.poster ? `${MEDIA_BASE_URL}/${movie.poster.storagePath}` : null,
+			posterUrl: movie.poster ? buildMediaUrl(movie.poster.storagePath) : null,
 			selectedGenreIds: movie.genres.map(g => g.genre.id),
 			subtitleTracks
 		},
