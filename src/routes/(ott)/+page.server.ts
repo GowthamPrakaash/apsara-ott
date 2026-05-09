@@ -2,11 +2,11 @@ import { db } from '$lib/server/db';
 import type { PageServerLoad } from './$types';
 import { eq, desc, and } from 'drizzle-orm';
 import { movies as moviesTable, series as seriesTable } from '$lib/server/db/schema';
-import { MEDIA_BASE_URL as mediaBaseUrl } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 
 function buildPosterUrl(storagePath: string | null | undefined): string | null {
 	if (!storagePath) return null;
-	return `${mediaBaseUrl}/${storagePath}`;
+	return buildMediaUrl(storagePath);
 }
 
 export const load: PageServerLoad = async () => {

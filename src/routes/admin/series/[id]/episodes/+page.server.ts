@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { episodes, series as seriesTable } from '$lib/server/db/schema';
 import { eq, asc } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		series,
 		episodes: allEpisodes.map(e => ({
 			...e,
-			posterUrl: e.poster ? `${MEDIA_BASE_URL}/${e.poster.storagePath}` : null
+			posterUrl: e.poster ? buildMediaUrl(e.poster.storagePath) : null
 		})),
 		seasons: Array.from(new Set(allEpisodes.map((episode) => episode.seasonNumber)))
 	};

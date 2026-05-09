@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { movies as moviesTable, subscriptions, users, watchlist } from '$lib/server/db/schema';
 import { eq, and, gt } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -57,12 +57,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	return {
 		movie: {
 			...movie,
-			posterUrl: movie.poster ? `${MEDIA_BASE_URL}/${movie.poster.storagePath}` : null,
-			videoUrl: movie.video ? `${MEDIA_BASE_URL}/${movie.video.storagePath}` : null,
+			posterUrl: movie.poster ? buildMediaUrl(movie.poster.storagePath) : null,
+			videoUrl: movie.video ? buildMediaUrl(movie.video.storagePath) : null,
 			subtitles:
 				movie.subtitleTracks.length > 0
 					? movie.subtitleTracks.map((track) => ({
-							src: `${MEDIA_BASE_URL}/${track.mediaFile.storagePath}`,
+							src: buildMediaUrl(track.mediaFile.storagePath),
 							srclang: track.language,
 							label: track.language.replace('_', ' '),
 							default: track.isDefault
@@ -70,7 +70,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 					: movie.subtitle
 						? [
 								{
-									src: `${MEDIA_BASE_URL}/${movie.subtitle.storagePath}`,
+									src: buildMediaUrl(movie.subtitle.storagePath),
 									srclang: 'english',
 									label: 'English',
 									default: true

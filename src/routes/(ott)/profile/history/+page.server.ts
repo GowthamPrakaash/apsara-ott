@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { watchHistory } from '$lib/server/db/schema';
 import { eq, desc, and, count } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -77,7 +77,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 							id: m.id,
 							name: m.name,
 							durationSeconds: m.durationSeconds,
-							posterUrl: m.poster ? `${MEDIA_BASE_URL}/${m.poster.storagePath}` : null
+							posterUrl: m.poster ? buildMediaUrl(m.poster.storagePath) : null
 						}
 					: null,
 				episode: ep
@@ -88,7 +88,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 							episodeNumber: ep.episodeNumber,
 							durationSeconds: ep.durationSeconds,
 							series: ep.series,
-							posterUrl: ep.poster ? `${MEDIA_BASE_URL}/${ep.poster.storagePath}` : null
+							posterUrl: ep.poster ? buildMediaUrl(ep.poster.storagePath) : null
 						}
 					: null
 			};

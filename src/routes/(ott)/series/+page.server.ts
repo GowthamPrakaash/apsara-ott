@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { series as seriesTable, genres as genresTable } from '$lib/server/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url }) => {
@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ url }) => {
 			slug: s.slug,
 			description: s.description,
 			featured: s.featured,
-			posterUrl: s.poster ? `${MEDIA_BASE_URL}/${s.poster.storagePath}` : null,
+			posterUrl: s.poster ? buildMediaUrl(s.poster.storagePath) : null,
 			genres: s.genres.map(g => g.genre)
 		})),
 		genres,

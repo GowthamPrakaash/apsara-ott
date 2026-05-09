@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { movies as moviesTable, series as seriesTable } from '$lib/server/db/schema';
 import { eq, ilike, or } from 'drizzle-orm';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url }) => {
@@ -26,14 +26,14 @@ export const load: PageServerLoad = async ({ url }) => {
 		q,
 		movies: movies.map(m => ({
 			id: m.id, name: m.name, slug: m.slug,
-			posterUrl: m.poster ? `${MEDIA_BASE_URL}/${m.poster.storagePath}` : null,
+			posterUrl: m.poster ? buildMediaUrl(m.poster.storagePath) : null,
 			genres: m.genres.map(g => g.genre),
 			durationSeconds: m.durationSeconds,
 			featured: m.featured
 		})),
 		series: series.map(s => ({
 			id: s.id, name: s.name, slug: s.slug,
-			posterUrl: s.poster ? `${MEDIA_BASE_URL}/${s.poster.storagePath}` : null,
+			posterUrl: s.poster ? buildMediaUrl(s.poster.storagePath) : null,
 			genres: s.genres.map(g => g.genre),
 			featured: s.featured
 		}))

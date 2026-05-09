@@ -5,7 +5,7 @@ import {
 	subscriptions,
 	users
 } from '$lib/server/db/schema';
-import { MEDIA_BASE_URL } from '$lib/server/config';
+import { buildMediaUrl } from '$lib/server/storage';
 import { and, asc, eq, gt } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 
@@ -72,13 +72,13 @@ export async function loadSeriesView(seriesId: string, userId?: string | null, s
 				description: episode.description,
 				durationSeconds: episode.durationSeconds,
 				releaseDate: episode.releaseDate,
-				posterUrl: episode.poster ? `${MEDIA_BASE_URL}/${episode.poster.storagePath}` : null,
-				videoUrl: episode.video ? `${MEDIA_BASE_URL}/${episode.video.storagePath}` : null,
+				posterUrl: episode.poster ? buildMediaUrl(episode.poster.storagePath) : null,
+				videoUrl: episode.video ? buildMediaUrl(episode.video.storagePath) : null,
 				href: `/series/${seriesData.id}/episode/${episode.id}`,
 				subtitles:
 					episode.subtitleTracks.length > 0
 						? episode.subtitleTracks.map((track) => ({
-								src: `${MEDIA_BASE_URL}/${track.mediaFile.storagePath}`,
+								src: buildMediaUrl(track.mediaFile.storagePath),
 								srclang: track.language,
 								label: track.language.replace('_', ' '),
 								default: track.isDefault
@@ -86,7 +86,7 @@ export async function loadSeriesView(seriesId: string, userId?: string | null, s
 						: episode.subtitle
 							? [
 									{
-										src: `${MEDIA_BASE_URL}/${episode.subtitle.storagePath}`,
+										src: buildMediaUrl(episode.subtitle.storagePath),
 										srclang: 'english',
 										label: 'English',
 										default: true
@@ -111,7 +111,7 @@ export async function loadSeriesView(seriesId: string, userId?: string | null, s
 	return {
 		series: {
 			...seriesData,
-			posterUrl: seriesData.poster ? `${MEDIA_BASE_URL}/${seriesData.poster.storagePath}` : null,
+			posterUrl: seriesData.poster ? buildMediaUrl(seriesData.poster.storagePath) : null,
 			genres: seriesData.genres.map((genre) => genre.genre)
 		},
 		seasons,
