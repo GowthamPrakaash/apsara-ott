@@ -4,48 +4,14 @@
 	import { Toaster } from 'svelte-sonner';
 	import { navigating } from '$app/stores';
 
-	let { children, data } = $props();
-
-	// Track progress bar animation
-	let progress = $state(0);
-	let visible = $state(false);
-	let animFrame: number;
-	let growInterval: ReturnType<typeof setInterval>;
-
-	$effect(() => {
-		if ($navigating) {
-			// Navigation started — show bar and grow quickly to ~80%
-			visible = true;
-			progress = 0;
-			clearInterval(growInterval);
-			cancelAnimationFrame(animFrame);
-
-			// Jump to 20% immediately, then slow-grow to keep suspense
-			setTimeout(() => { progress = 20; }, 10);
-			growInterval = setInterval(() => {
-				if (progress < 80) {
-					// Ease out: grow faster at start, slower near 80
-					progress += (80 - progress) * 0.08;
-				}
-			}, 60);
-		} else {
-			// Navigation complete — snap to 100% then fade out
-			clearInterval(growInterval);
-			progress = 100;
-			setTimeout(() => {
-				visible = false;
-				progress = 0;
-			}, 300);
-		}
-	});
+	let { children } = $props();
 </script>
 
-<!-- Navigation progress bar -->
-{#if visible}
-	<div
-		class="nav-progress-bar"
-		style="width: {progress}%; opacity: {progress === 100 ? 0 : 1};"
-	></div>
+<!-- Navigation loading bar — shown while SvelteKit fetches the next page -->
+{#if $navigating}
+	<div class="nav-loader-track" aria-hidden="true">
+		<div class="nav-loader-bar"></div>
+	</div>
 {/if}
 
 <ModeWatcher defaultMode="dark" />
@@ -53,16 +19,34 @@
 {@render children()}
 
 <style>
-	.nav-progress-bar {
+	.nav-loader-track {
 		position: fixed;
 		top: 0;
 		left: 0;
-		height: 2.5px;
-		z-index: 9999;
-		background: linear-gradient(90deg, hsl(var(--primary, 262 80% 65%)), hsl(var(--primary, 262 80% 65%) / 0.7));
-		box-shadow: 0 0 8px hsl(var(--primary, 262 80% 65%) / 0.6);
-		transition: width 0.2s ease-out, opacity 0.25s ease;
-		border-radius: 0 2px 2px 0;
+		right: 0;
+		height: 3px;
+		z-index: 99999;
+		background: oklch(1 0 0 / 8%);
 		pointer-events: none;
+	}
+
+	.nav-loader-bar {
+		height: 100%;
+		width: 40%;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			oklch(0.627 0.265 303.9),
+			oklch(0.488 0.243 264.376),
+			oklch(0.627 0.265 303.9),
+			transparent
+		);
+		border-radius: 0 2px 2px 0;
+		animation: nav-slide 1.2s ease-in-out infinite;
+	}
+
+	@keyframes nav-slide {
+		0%   { transform: translateX(-100%); }
+		100% { transform: translateX(350%); }
 	}
 </style>
